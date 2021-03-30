@@ -1,0 +1,218 @@
+\documentclass[10pt,pdf]{beamer}
+
+\usefonttheme[onlymath]{serif}
+\usepackage{amsmath,amsfonts,amssymb,amsthm,mathtools}
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english,ukrainian]{babel}
+\usepackage{ragged2e}
+\justifying
+\addtobeamertemplate{navigation symbols}{}{%
+    \usebeamerfont{footline}%
+    \usebeamercolor[fg]{footline}%
+    \hspace{1em}%
+    \insertframenumber/\inserttotalframenumber
+}
+
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\dotprod}[2]{\left(#1, #2\right)}
+\newcommand{\Tr}[1]{\mathrm{Tr}\left(#1\right)}
+
+\usepackage{graphicx}
+\graphicspath{ {./pics/} }
+
+\usetheme{Luebeck}
+\title{Analytical derivation of principal component analysis}
+\author{N. Fordui, O. Galganov}
+
+\date{}
+\begin{document}
+    \begin{frame}
+        \titlepage
+    \end{frame}
+    \begin{frame}
+        \frametitle{Problem description}
+        Let $\{{x_1}, ..., {x_m}\}$ be a set of $m$ points in $\mathbb{R}^n$.
+        Task is to find for given $k < n$ a $k$-dimensional hyperplane, which is
+        the closest to these points in the sense Euclidean distance: in other words, difference between
+        points and their projections onto a plane must be the smallest possible.
+
+        This problem is called \textbf{principal component analysis} and is widely used in
+        statistics and machine learning.
+    \end{frame}
+    \begin{frame}
+        \frametitle{Problem statement}
+        Let $\{{x_1}, ..., {x_m}\}$ be $m$ vectors in $\mathbb{R}^n$.
+        It is known that $k$-dimensional hyperplane $H_k$ in $\mathbb{R}^n$ can be described by $k$ orthogonal unit
+        vectors that can be completed to the orthonormal basis of $\mathbb{R}^n$ (ONB), 
+        and bias vector ${b}$
+        $H_k = \left\{ x = b + c_1 u_1 + ... + c_k u_k : c_1,...,c_k \in \mathbb{R}\right\}$.
+
+        Let $\{{u_i}\}_{i=1}^n$ be some ONB in $\mathbb{R}^n$. Then
+        $\forall \; i =1,...,n:{x_i} = {b} + \sum\limits_{j=1}^nc_{i, j}u_j$, where $c_{i, j} = \dotprod{x_i}{u_j}$
+        (it is Fourier expansion in $\mathbb{R}^n$).
+
+        Firstly, we will show that we can set $b=0$ after applying some transformation to given vectors.
+        \begin{block}{Auxiliary problem}
+            For given $m$ points $\{{x_1}, ..., {x_m}\}$ in $\mathbb{R}^n$
+            find the closest point to all of them in the sense of Euclidean distance.
+        \end{block}
+    \end{frame}
+    \begin{frame}
+        \frametitle{Auxiliary problem solution}
+        This problem can be formalized like $F(x) = \sum\limits_{k=1}^m \norm{x - x_k}^2 \to \min$, $x \in \mathbb{R}^n$.
+        
+        $F'_{x} (x^\ast) = 2 \sum\limits_{k=1}^m (x^\ast - x_k) = 0 \Rightarrow x^\ast = \frac{1}{m} \sum\limits_{k=1}^m x_k$ --- is stationary point.
+
+        As $F(x)$ is convex function, $x^\ast = \frac{1}{m} \sum\limits_{k=1}^m x_k$ is solution of given minimization problem.
+    \end{frame}
+    \begin{frame}
+        \frametitle{Problem statement}
+        So, after replacing $x_i$ with $y_i = x_i - \frac{1}{m} \sum\limits_{i=1}^m x_i$,
+        we can assume $b = 0$, because closest point in $\mathbb{R}^n$ to all of them is $0$,
+        hence desired hyperplane must contain $0$.
+
+        Thus, $\forall \; i =1,...,n:{y_i} = \sum\limits_{j=1}^nc_{i, j}u_j$, where $c_{i, j} = \dotprod{y_i}{u_j}$.
+        Hyperplane projections ${y_i}$ are in form $\hat{y_i} = \sum\limits_{j=1}^kc_{i, j}u_j$, $k < n$.
+        Let's define error vectors ${\varepsilon_i} = {y_i} - \hat{y_i} = \sum\limits_{j=k+1}^nc_{i, j}u_j$ and
+        put them in one matrix:
+
+        $E = 
+        \begin{pmatrix}
+            {\varepsilon_1}, {\varepsilon_2}, ..., {\varepsilon_m} 
+        \end{pmatrix}$
+        $
+        =
+        \begin{pmatrix}
+            {u_{k+1}}, {u_{k+2}}, ..., {u_{n}}
+        \end{pmatrix}
+        \cdot
+        \begin{pmatrix}
+            c_{1, k+1} & c_{2, k+1} & ... & c_{m, k+1}\\
+            c_{1, k+2} & c_{2, k+2} & ... & c_{m, k+2}\\
+            ... & ... & ... & ... \\
+            c_{1, n} & c_{2, n} & ... & c_{m, n}
+        \end{pmatrix}$
+
+        We will denote it $E = U C$. Note that $U^T U = I$ because of orthogonality and unit norm of $u_i$ vectors, and
+        $C = Y^T U$.
+    \end{frame}
+    \begin{frame}
+        \frametitle{Problem solution}
+        \begin{block}{Problem}
+            Find orthonormal vectors $\{u_i\}_{i=1}^n$ such that $\norm{E}^2 \rightarrow min$, 
+            where $\norm{E} = \sqrt{\sum_{i, j = 1}^n e_{ij}^2}$ denotes Frobenius norm of error matrix $E$.
+        \end{block}
+        Let's denote $Y = ({y_1}, ..., {y_m})$, $F = Y Y^T$.
+
+        $\norm{E}^2 = \Tr{E^TE} = \Tr{C^T U^T U C} = \Tr{C^T C} =
+        \Tr{U^T Y Y^T U} =$ 
+        
+        $= \Tr{U^T F U}$.
+        As $U = \sum\limits_{j=k+1}^n \begin{pmatrix}
+            0, .... 0, u_{j}, 0 ..., 0
+        \end{pmatrix} = \sum\limits_{j=k+1}^n U_j$, by linearity of $\mathrm{Tr}$ 
+        (trace of matrix, sum of diagonal elements) we have
+
+        $\Tr{U^T F U} = \sum\limits_{j = k+1}^n \Tr{U_j^T F U_j}$.
+        In each $U_j$ matrix only one columns is non-zero, so
+        $\sum\limits_{j = k+1}^n \Tr{U_j^T F U_j} = \sum\limits_{j = k+1}^n \dotprod{F u_j}{u_j}$.
+        
+        So, we arrive to constrained optimization problem.
+    \end{frame}
+    \begin{frame}
+        \frametitle{Problem solution}
+        $\begin{cases}
+            F(u_{k+1}, ..., u_{n}) = \sum\limits_{j = k+1}^n \dotprod{F u_j}{u_j} \to \min \\
+            \norm{u_j}^2 = 1, \; j = k+1, ..., n \\
+            \{ u_{k+1}, ..., u_n\} \text{ --- linearly independent}
+        \end{cases}$
+
+        This problem is regular because gradients of constrains are linearly independent.
+
+        Let's write Lagrange function and it's derivatives:
+
+        $\mathcal{L}(u_{k+1}, ..., u_{n}, \lambda_{k+1}, ..., \lambda_n) = 
+        \sum\limits_{j=k+1}^n\left(\dotprod{F{u_j}}{{u_j}} + 
+        \lambda_j\left(\norm{{u_j}
+        }^2 - 1\right)\right)$
+
+        $
+        \begin{cases}
+            \frac{\partial \mathcal{L}}{\partial {u_j}} = 2F{u_j} + 2 \lambda_j {u_j} = 0 \\ 
+            (j = k+1, ..., n) \\
+            \norm{u_j}^2 = 1, \; j = k+1, ..., n \\
+            \{ u_{k+1}, ..., u_n\} \text{ --- linearly independent}
+        \end{cases}
+        $
+
+        As $2F{u_j} + 2 \lambda_j {u_j} = 0 \Leftrightarrow F{u_j} = -\lambda_j {u_j}$,
+        solutions of this systems are $u_j$ --- eigenvectors of $F$ with unit norm.
+        Because we deal with minimization problem, $\{ u_{k+1}, ..., u_n\}$
+        must correspond to smallest eigenvalues $\mu_j = -\lambda_j$.
+    \end{frame}
+    \begin{frame}
+        \frametitle{Problem solution}
+        $F^T = (Y Y^T)^T = Y Y^T$, $F \geq 0$, because $\forall \; x \in \mathbb{R}^n : (Fx, x) = (Y Y^T x, x) = (Y^T x, Y^T x) \geq 0$.
+        So, all $\mu_j = -\lambda_j \geq 0$.
+
+        Target function is bounded from below and increasing, so $u_j$ are solutions to minimization problem.
+        Moreover, vectors of ONB $\{{u_i}\}_{i=1}^n$ are eigenvectors of $F$, ordered by decreasing of their eigenvalues, and
+        $u_1, ..., u_k$ correspond to $k$ largest eigenvalues (recall that $\hat{y_i} = \sum\limits_{j=1}^kc_{i, j}u_j$).
+        
+        Also, recall that $y_i = x_i - \frac{1}{m} \sum\limits_{i=1}^m x_i$. 
+        Let's denote $X = ({x_1}, ..., {x_m})$, then 
+        $Y = X - \left( \frac{1}{m} \sum\limits_{i=1}^m x_i\right) \cdot \underbrace{(1, 1, ..., 1)}_{m}$.
+        Now we will compute $Y Y^T$.
+    \end{frame}
+    \begin{frame}
+        \frametitle{Problem solution}
+        let $\overline{x} = \frac{1}{m} \sum\limits_{i=1}^m x_i$.
+
+        $Y Y^T = \left(X -  \overline{x}\cdot (1, 1, ..., 1)\right) \cdot
+        \left(X^T - (1, 1, ..., 1)^T \cdot \overline{x}^T \right) = $
+
+        $ = X X^T - \overline{x}\cdot (1, 1, ..., 1) \cdot X^T - 
+        X \cdot (1, 1, ..., 1)^T \cdot \overline{x}^T + 
+        \overline{x} \cdot (1, 1, ..., 1) \cdot (1, 1, ..., 1)^T \cdot \overline{x}^T
+         = X X^T - m \cdot \overline{x} \cdot \overline{x}^T - m \cdot \overline{x} \cdot \overline{x}^T
+         + m \cdot \overline{x} \cdot \overline{x}^T = X X^T - m \cdot \overline{x} \cdot \overline{x}^T= $
+
+        $ = X X^T - \frac{1}{m} \left( \sum\limits_{i=1}^m x_i\right) \cdot \left( \sum\limits_{i=1}^m x_i^T\right)$
+
+        So, $u_j$ are eigenvectors of
+        $X X^T - m \cdot \overline{x} \cdot \overline{x}^T$.
+    \end{frame}
+    \begin{frame}
+        \frametitle{Solution}
+        \textbf{Desired $k$-dimensional hyperplane is $\overline{x} + L(u_1, ..., u_k)$.}
+
+        Here
+        $\overline{x} = \frac{1}{m} \sum\limits_{i=1}^m x_i$
+        and $L(u_1, ..., u_k)$ is linear span of eigenvectors of
+        $X X^T - m \cdot \overline{x} \cdot \overline{x}^T$ ($X = ({x_1}, ..., {x_m})$),
+        which correspond to $k$ largest eigenvalues. 
+        Note that projection error (sum of squares of Euclidean norms of $\varepsilon_i$)
+        is equal ${\sum\limits_{j=k+1}^n \mu_j}$ --- it is sum of $n-k$ smallest eigenvalues of this matrix.
+
+        It's useful to note that projections $y_i = x_i - \overline{x}$ onto $L(u_1, ..., u_k)$ can be calculated using this formula:
+        $\mathrm{pr} (y_i) = (u_1, ..., u_k)^T \cdot y_i$, or in matrix form:
+        $\mathrm{pr} (Y) = (u_1, ..., u_k)^T \cdot Y$
+    \end{frame}
+    \begin{frame}
+        \frametitle{Appendix: derivative of quadratic form}
+        We used derivative of quadratic form and squared norm in solution.
+        Vector derivative of vector-argument and scalar-valued function is
+        a vector of partial derivatives with respect to each vector coordinated.
+        We provide a proof of used derivative formulas.
+
+        $F(x) = \dotprod{Ax}{x}$, $x \in \mathbb{R}^n$, $A$ --- real symmetric $n\times n$ matrix.
+
+        $F(x+h) - F(x) = \dotprod{Ax+Ah}{x+h} - \dotprod{Ax}{x} =
+        \dotprod{Ax}{x} + \dotprod{Ax}{h} + \dotprod{Ah}{x} + \dotprod{Ah}{h} - \dotprod{Ax}{x} =
+        \left[ A = A^T \right] = \dotprod{2Ax}{h} + \dotprod{Ah}{h}$
+
+        Linear part of increment is $2Ax$, so $F'(x) = 2Ax$.
+        In particular, derivative of square of norm $\norm{x}^2$ is simply $2x$.
+    \end{frame}
+\end{document}

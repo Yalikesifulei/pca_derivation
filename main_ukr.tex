@@ -1,0 +1,225 @@
+\documentclass[10pt,pdf]{beamer}
+
+\usefonttheme[onlymath]{serif}
+\usepackage{amsmath,amsfonts,amssymb,amsthm,mathtools}
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english,ukrainian]{babel}
+\usepackage{ragged2e}
+\justifying
+\addtobeamertemplate{navigation symbols}{}{%
+    \usebeamerfont{footline}%
+    \usebeamercolor[fg]{footline}%
+    \hspace{1em}%
+    \insertframenumber/\inserttotalframenumber
+}
+
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert} % command for norm
+\newcommand{\dotprod}[2]{\left(#1, #2\right)} % command for scalar
+\newcommand{\Tr}[1]{\mathrm{Tr}\left(#1\right)}
+
+\usepackage{graphicx}
+\graphicspath{ {./pics/} }
+
+\usetheme{Luebeck}
+\title{Метод головних компонент з точки зору методів оптимізації}
+\author{Н. Фордуй, О. Галганов}
+
+\date{}
+\begin{document}
+    \begin{frame}
+        \titlepage
+    \end{frame}
+    \begin{frame}
+        \frametitle{Опис задачі}
+        Задано набір $\{{x_1}, ..., {x_m}\}$ із $m$ точок в $\mathbb{R}^n$.
+        Необхідно для заданого $k < n$ знайти $k$-вимірну гіперплощину, яка буде найближчою
+        до цих точок в сенсі евклідової норми: тобто, мінімальною має бути
+        різниця між цими точками та їх проекціями на шукану площину.
+        
+        Ця задача називається \textbf{методом головних компонент} (англ. principal component analysis, PCA)
+        і широко застосовується в статистиці та машинному навчанні.
+    \end{frame}
+    \begin{frame}
+        \frametitle{Постановка задачі}
+        Розглянемо задані $\{{x_1}, ..., {x_m}\}$ --- $m$ векторів з $\mathbb{R}^n$.
+        Відомо, що $k$-вимірна гіперплощина $H_k$ в $\mathbb{R}^n$ задається $k$ ортонормованими
+        векторами $\{u_1, ..., u_k\}$, які можна доповнити до базису (далі --- ОНБ), та вектором зсуву відносно нуля
+        ${b}$: 
+        
+        $H_k = \left\{ x = b + c_1 u_1 + ... + c_k u_k : c_1,...,c_k \in \mathbb{R}\right\}$.
+
+        Нехай $\{{u_i}\}_{i=1}^n$ --- деякий ОНБ в $\mathbb{R}^n$. Тоді
+        $\forall \; i =1,...,n:{x_i} = {b} + \sum\limits_{j=1}^nc_{i, j}u_j$, де $c_{i, j} = \dotprod{x_i}{u_j}$
+        (це --- розклад Фур'є в $\mathbb{R}^n$).
+
+        Покажемо, що після застосування деякого перетворення заданих векторів можна
+        вважати $b = 0$.
+        \begin{block}{Допоміжна задача}
+            Для заданих $m$ точок $\{{x_1}, ..., {x_m}\}$ в $\mathbb{R}^n$
+            знайти точку, яка знаходиться найближче до них в сенсі 
+            евклідової норми.
+        \end{block}
+    \end{frame}
+    \begin{frame}
+        \frametitle{Розв'язання допоміжної задачі}
+        Задача має вигляд $F(x) = \sum\limits_{k=1}^m \norm{x - x_k}^2 \to \min$, $x \in \mathbb{R}^n$.
+        
+        $F'_{x} (x^\ast) = 2 \sum\limits_{k=1}^m (x^\ast - x_k) = 0 \Rightarrow x^\ast = \frac{1}{m} \sum\limits_{k=1}^m x_k$ --- стаціонарна точка.
+
+        Оскільки $F(x)$ --- опукла функція, то $x^\ast = \frac{1}{m} \sum\limits_{k=1}^m x_k$ --- розв'язок.
+    \end{frame}
+    \begin{frame}
+        \frametitle{Постановка задачі}
+        Таким чином, якщо замінити $x_i$ на $y_i = x_i - \frac{1}{m} \sum\limits_{i=1}^m x_i$,
+        то можна вважати $b = 0$, оскільки тепер найближчою точкою $\mathbb{R}^n$ буде точка $0$,
+        тому й шукана гіперплощина теж має проходити через $0$.
+
+        Отже, $\forall \; i =1,...,n:{y_i} = \sum\limits_{j=1}^nc_{i, j}u_j$, де $c_{i, j} = \dotprod{y_i}{u_j}$.
+        Проекції на гіперплощину ${y_i}$ будемо шукати у вигляді $\hat{y_i} = \sum\limits_{j=1}^kc_{i, j}u_j$, $k < n$.
+        Введемо вектори похибок ${\varepsilon_i} = {y_i} - \hat{y_i} = \sum\limits_{j=k+1}^nc_{i, j}u_j$,
+        які зберемо у матрицю:
+
+        $E = 
+        \begin{pmatrix}
+            {\varepsilon_1}, {\varepsilon_2}, ..., {\varepsilon_m} 
+        \end{pmatrix}$
+        $
+        =
+        \begin{pmatrix}
+            {u_{k+1}}, {u_{k+2}}, ..., {u_{n}}
+        \end{pmatrix}
+        \cdot
+        \begin{pmatrix}
+            c_{1, k+1} & c_{2, k+1} & ... & c_{m, k+1}\\
+            c_{1, k+2} & c_{2, k+2} & ... & c_{m, k+2}\\
+            ... & ... & ... & ... \\
+            c_{1, n} & c_{2, n} & ... & c_{m, n}
+        \end{pmatrix}$
+
+        Коротко: $E = U C$, причому $U^T U = I$, бо ці вектори ортонормовані, а
+        $C = Y^T U$.
+    \end{frame}
+    \begin{frame}
+        \frametitle{Розв'язання задачі}
+        \begin{block}{Задача}
+            Знайти такі ортонормовані вектори $\{u_i\}_{i=1}^n$, що $\norm{E}^2 \rightarrow min$, 
+           де $\norm{E} = \sqrt{\sum_{i, j = 1}^n e_{ij}^2}$ --- норма Фробеніуса матриці похибок $E$.
+        \end{block}
+        Введемо позначення $Y = ({y_1}, ..., {y_m})$, $F = Y Y^T$.
+
+        $\norm{E}^2 = \Tr{E^TE} = \Tr{C^T U^T U C} = \Tr{C^T C} =
+        \Tr{U^T Y Y^T U} =$ 
+        
+        $= \Tr{U^T F U}$.
+        Оскільки $U = \sum\limits_{j=k+1}^n \begin{pmatrix}
+            0, .... 0, u_{j}, 0 ..., 0
+        \end{pmatrix} = \sum\limits_{j=k+1}^n U_j$, за лінійністю $\mathrm{Tr}$ 
+        (слід матриці, сума діагональних елементів) маємо
+
+        $\Tr{U^T F U} = \sum\limits_{j = k+1}^n \Tr{U_j^T F U_j}$.
+        В кожній матриці $U_j$ лише один стовпець не рівний нулю, тому
+        $\sum\limits_{j = k+1}^n \Tr{U_j^T F U_j} = \sum\limits_{j = k+1}^n \dotprod{F u_j}{u_j}$.
+        
+        Таким чином, отримуємо задачу умовної оптимізації.
+    \end{frame}
+    \begin{frame}
+        \frametitle{Розв'язання задачі}
+        $\begin{cases}
+            F(u_{k+1}, ..., u_{n}) = \sum\limits_{j = k+1}^n \dotprod{F u_j}{u_j} \to \min \\
+            \norm{u_j}^2 = 1, \; j = k+1, ..., n \\
+            \{ u_{k+1}, ..., u_n\} \text{ --- лінійно незалежні}
+        \end{cases}$
+
+        Ця задача є регулярною, бо градієнти функцій, що задають обмеження, є лінійно незалежними за умовою.
+
+        Маємо функцію Лагранжа: 
+
+        $\mathcal{L}(u_{k+1}, ..., u_{n}, \lambda_{k+1}, ..., \lambda_n) = 
+        \sum\limits_{j=k+1}^n\left(\dotprod{F{u_j}}{{u_j}} + 
+        \lambda_j\left(\norm{{u_j}
+        }^2 - 1\right)\right)$
+
+        $
+        \begin{cases}
+            \frac{\partial \mathcal{L}}{\partial {u_j}} = 2F{u_j} + 2 \lambda_j {u_j} = 0 \\ 
+            (j = k+1, ..., n) \\
+            \norm{u_j}^2 = 1, \; j = k+1, ..., n \\
+            \{ u_{k+1}, ..., u_n\} \text{ --- лінійно незалежні}
+        \end{cases}
+        $
+
+        Оскільки $2F{u_j} + 2 \lambda_j {u_j} = 0 \Leftrightarrow F{u_j} = -\lambda_j {u_j}$,
+        то розв'язком системи будуть $u_j$ --- власні вектори $F$ одиничної норми.
+        Але з умови мінімізації цільової функції та лінійної незалежності $\{ u_{k+1}, ..., u_n\}$
+        ці власні вектори мають відповідати найменшим власним числам $\mu_j = -\lambda_j$.
+    \end{frame}
+    \begin{frame}
+        \frametitle{Розв'язання задачі}
+        $F^T = (Y Y^T)^T = Y Y^T$, $F \geq 0$, бо $\forall \; x \in \mathbb{R}^n : (Fx, x) = (Y Y^T x, x) = (Y^T x, Y^T x) \geq 0$.
+        Таким чином, всі $\mu_j = -\lambda_j \geq 0$.
+
+        Оскільки цільова функція є нескінченно зростаючою, то отримані $u_j$ є розв'язками задачі.
+        Зрозуміло, що інші складові ОНБ $\{{u_i}\}_{i=1}^n$ можна покласти рівними іншим власним векторам
+        матриці $F$, розташувавши всі отримані у порядку спадання відповідних власних значень, причому
+        векторам $u_1, ..., u_k$ відповідатимуть $k$ найбільших власних чисел (нагадаємо, що
+        за цими векторами розкладалися наближення $\hat{y_i}$).
+        
+        Залишилося згадати, що $y_i = x_i - \frac{1}{m} \sum\limits_{i=1}^m x_i$. 
+        Позначимо $X = ({x_1}, ..., {x_m})$, тоді 
+        $Y = X - \left( \frac{1}{m} \sum\limits_{i=1}^m x_i\right) \cdot \underbrace{(1, 1, ..., 1)}_{m}$.
+        Тепер обчислимо матрицю $Y Y^T$.
+    \end{frame}
+    \begin{frame}
+        \frametitle{Розв'язання задачі}
+        Введемо позначення $\overline{x} = \frac{1}{m} \sum\limits_{i=1}^m x_i$.
+
+        $Y Y^T = \left(X -  \overline{x}\cdot (1, 1, ..., 1)\right) \cdot
+        \left(X^T - (1, 1, ..., 1)^T \cdot \overline{x}^T \right) = $
+
+        $ = X X^T - \overline{x}\cdot (1, 1, ..., 1) \cdot X^T - 
+        X \cdot (1, 1, ..., 1)^T \cdot \overline{x}^T + 
+        \overline{x} \cdot (1, 1, ..., 1) \cdot (1, 1, ..., 1)^T \cdot \overline{x}^T
+         = X X^T - m \cdot \overline{x} \cdot \overline{x}^T - m \cdot \overline{x} \cdot \overline{x}^T
+         + m \cdot \overline{x} \cdot \overline{x}^T = X X^T - m \cdot \overline{x} \cdot \overline{x}^T= $
+
+        $ = X X^T - \frac{1}{m} \left( \sum\limits_{i=1}^m x_i\right) \cdot \left( \sum\limits_{i=1}^m x_i^T\right)$
+
+        Таким чином, знайдені вектори $u_j$ є власними векторами матриці 
+        $X X^T - m \cdot \overline{x} \cdot \overline{x}^T$.
+    \end{frame}
+    \begin{frame}
+        \frametitle{Відповідь}
+        \textbf{Шуканою $k$-вимірною гіперплощиною є $\overline{x} + L(u_1, ..., u_k)$.}
+
+        Тут
+        $\overline{x} = \frac{1}{m} \sum\limits_{i=1}^m x_i$,
+        а $L(u_1, ..., u_k)$ --- лінійна оболонка власних векторів матриці
+        $X X^T - m \cdot \overline{x} \cdot \overline{x}^T$ ($X = ({x_1}, ..., {x_m})$),
+        які відповідають $k$ найбільшим власним числам. 
+        Зазначимо, що при цьому похибка (сума квадратів евклідових норм векторів $\varepsilon_i$)
+        рівна $\sum\limits_{j=k+1}^n \mu_j$ --- сумі $n-k$ найменших власних чисел цієї матриці.
+
+        Для практичного застосування є корисною формула для
+        обчислення проекцій $y_i = x_i - \overline{x}$ на $L(u_1, ..., u_k)$:
+        $\mathrm{pr} (y_i) = (u_1, ..., u_k)^T \cdot y_i$, або в матричному вигляді:
+        $\mathrm{pr} (Y) = (u_1, ..., u_k)^T \cdot Y$
+    \end{frame}
+    \begin{frame}
+        \frametitle{Додаток: диференціювання за векторним аргументом}
+        У розв'язанні задачі було використано похідні скалярної функції з
+        декількома векторними аргументами. Під частинною похідною
+        за векторним аргументом вважається вектор з частинних похідних
+        цієї функції за координатами вектора. Доречно навести виведення використаної
+        формули для похідної від квадратичної форми.
+
+        $F(x) = \dotprod{Ax}{x}$, $x \in \mathbb{R}^n$, $A$ --- дійсна симетрична $n\times n$ матриця.
+
+        $F(x+h) - F(x) = \dotprod{Ax+Ah}{x+h} - \dotprod{Ax}{x} =
+        \dotprod{Ax}{x} + \dotprod{Ax}{h} + \dotprod{Ah}{x} + \dotprod{Ah}{h} - \dotprod{Ax}{x} =
+        \left[ A = A^T \right] = \dotprod{2Ax}{h} + \dotprod{Ah}{h}$
+
+        Отже, лінійна частина приросту рівна $2Ax$, звідки $F'(x) = 2Ax$.
+        Зокрема, похідна квадрата норми $\norm{x}^2$ рівна $2x$.
+    \end{frame}
+\end{document}
